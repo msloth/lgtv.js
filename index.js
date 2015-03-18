@@ -24,15 +24,15 @@
 // existant respectively.
 // -----------------------------------------------------------------------------
 var fs = require('fs'); // for storing client key
-var http = require('http'); // only for communication with Kodi
-var WebSocket = require('ws'); // for communication with TV
+// var http = require('http'); // for communication with Kodi
+
+// var WebSocket = require('ws'); 
+var WebSocketClient = require('websocket').client; // for communication with TV
+var client = new WebSocketClient();
+var handshaken = false;
+
 var eventemitter = new (require('events').EventEmitter); // for match ws request -- response
 eventemitter.setMaxListeners(0); // enable infinite number of listeners
-
-// eventemitter.on(id, function (message) {
-//   console.log(message); 
-//   eventemitter.removeAllListeners(json.id);
-// });
 
 // connection to TV
 var wsurl = 'ws://lgsmarttv.lan:3000';
@@ -60,11 +60,11 @@ var hello_w_key = "{\"type\":\"register\",\"id\":\"register_0\",\"payload\":{\"f
 function get_handshake() {
   if (fs.existsSync(client_key_filename)) {
     var ck = fs.readFileSync(client_key_filename);
-    // console.log("Client key:" + ck);
+    console.log("Client key:" + ck);
     return hello_w_key.replace("CLIENTKEYGOESHERE", ck);
 
   } else {
-    // console.log("First usage, let's pair with TV.");
+    console.log("First usage, let's pair with TV.");
     return hello;
   }
 }
@@ -74,40 +74,133 @@ function store_client_key(ck) {
   console.log("Storing client key:" + ck);
   fs.writeFileSync(client_key_filename, ck);
 }
-// ---------------------------------------------------------
-try {
-  var ws = new WebSocket(wsurl);
-} catch(err) {
-  console.log(err);
-  console.log("Error, could not open websocket (are you connected to the Internet?)");
-  process.exit(0); // TODO better error handling, what is appropriate here - raise some error.
-}
-// ---------------------------------------------------------
-// callback for when connection is opened, ie the websocket handshake is done and
-// we should perform TV handshake.
-ws.on('open', function() {
-  console.log('opened connection to TV');
+/*---------------------------------------------------------------------------*/
+client.on('connectFailed', function(error) {
+    // failed to connect, set timer to retry in a few seconds
+    console.log('Connect Error: ' + error.toString());
+    setTimeout(function(){connect();}, 5000);
+});
+/*---------------------------------------------------------------------------*/
+// store the connection in a variable with larger scope so that we may later
+// refer to it and close connection.
+var clientconnection = {};
+client.on('connect', function(connection) {
+    console.log('WebSocket Client Connected on IP:' + connection.remoteAddress);
+    clientconnection = connection;
+    //--------------------------------------------------------------------------
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+        throw new Error("Websocket connection error:" + error.toString());
+    });
+    //--------------------------------------------------------------------------
+    connection.on('close', function() {
+        console.log('LG TV disconnected');
+        clientconnection = {};
+        eventemitter.emit("lgtv_ws_closed");
+    });
+    //--------------------------------------------------------------------------
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            var json = JSON.parse(message.utf8Data);
+            console.log('<--- received: %s', message.utf8Data);
+            // console.log('<--- emitting: %s', json.id);
+            eventemitter.emit(json.id, json);
+        } else {
+            console.log('<--- received: %s', message.toString());
+        }
+    });
+    //--------------------------------------------------------------------------
 
-  // ws.close(0,""); // XXXXX testing close
+    handshaken = false;
+    var hs = get_handshake();
+    console.log("Sending handshake: %s", hs);
+    connection.send(hs);
+    // connection.sendUTF(hs); // works as well
+});
+/*---------------------------------------------------------------------------*/
+var isConnected = function(){
+    if (typeof clientconnection.connected === 'undefined') {
+        // console.log("disconnected");
+        return false;
+    }
+    return clientconnection.connected;
+};
+//------------------------------------------
+var close_connection = function(){
+    // console.log("disconnecting");
+    clientconnection.close();
+};
+//------------------------------------------
+var remote_ip = function(){
+    if (typeof clientconnection.remoteAddress === 'undefined') {
+        return "0.0.0.0";
+    }
+    return clientconnection.remoteAddress;
+};
+//------------------------------------------
+var ws_send = function(str){
+    if (typeof clientconnection.connected === 'undefined') {
+        return false;
+    }
+    if (typeof str !== 'string') {
+        return false;
+    }
+    if (clientconnection.connected) {
+      clientconnection.send(str);
+    }
+    return clientconnection.connected;
+};
+/*---------------------------------------------------------------------------*/
 
-  // send handshake - will either show prompt on TV (if first connect), or auth us
-  var hs = get_handshake();
-  ws.send(hs);
-});
-// ---------------------------------------------------------
-ws.on('close', function() {
-  console.log('LG TV disconnected');
-  eventemitter.emit("lgtv_ws_closed");
-});
-// ---------------------------------------------------------
-// callback for when we receive something on the websocket connection: can be
-// either responses or events
-ws.on('message', function(message) {
-  var json = JSON.parse(message);
-  console.log('<--- received: %s', message);
-  // console.log('<--- emitting: %s', json.id);
-  eventemitter.emit(json.id, json);
-});
+
+
+
+
+
+/*---------------------------------------------------------------------------*/
+// this is the old version, using the ws lib; above is the new, using websocket lib
+    // try {
+    //   var ws = new WebSocket(wsurl);
+    // } catch(err) {
+    //   console.log(err);
+    //   console.log("Error, could not open websocket (are you connected to the Internet?)");
+    //   process.exit(0); // TODO better error handling, what is appropriate here - raise some error.
+    // }
+    // // ---------------------------------------------------------
+    // // callback for when connection is opened, ie the websocket handshake is done and
+    // // we should perform TV handshake.
+    // ws.on('open', function() {
+    //   console.log('opened connection to TV');
+    //   // send handshake - will either show prompt on TV (if first connect), or auth us
+    //   var hs = get_handshake();
+    //   ws.send(hs);
+    // });
+    // // ---------------------------------------------------------
+    // ws.on('close', function() {
+    //   console.log('LG TV disconnected');
+    //   eventemitter.emit("lgtv_ws_closed");
+    // });
+    // // ---------------------------------------------------------
+    // // callback for when we receive something on the websocket connection: can be
+    // // either responses or events
+    // ws.on('message', function(message) {
+    //   var json = JSON.parse(message);
+    //   console.log('<--- received: %s', message);
+    //   eventemitter.emit(json.id, json);
+    // });
+/*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+
+
 // ---------------------------------------------------------
 // send a command to the TV after having established a paired connection
 var command_count = 0;
@@ -126,7 +219,6 @@ var send_command = function(prefix, msgtype, uri, payload, fn) {
   // note: there is a clear risk of memory leaks should we have a lot of outstanding
   // requests that never gets responses as the listeners are only cleared on response
   // or websocket close.
-
   try {
     if (typeof fn === 'function') {
       eventemitter.once(prefix + command_count, function (message) {
@@ -134,14 +226,80 @@ var send_command = function(prefix, msgtype, uri, payload, fn) {
         fn(RESULT_OK, message);
       });
     }
-    ws.send(msg);
+    ws_send(msg);
 
   } catch(err) {
-    console.log("Error, not connected to TV.");
+    console.log("Error, not connected to TV:" + err.toString());
     if (typeof fn === 'function') {
       fn(RESULT_ERROR, "not connected");
     }
   }
+};
+//------------------------------------------
+var open_connection = function(fn){
+    // console.log("connecting");
+    clientconnection = {};
+    try {
+      client.connect(wsurl);
+      fn(RESULT_OK, {});
+    } catch(error) {
+      fn(RESULT_ERROR, error.toString());
+    }
+};
+/*---------------------------------------------------------------------------*/
+// Connect to TV
+var connect = function(fn) {
+  // open websocket connection and perform handshake
+  console.log("connecting to lgtv");
+
+  if (isConnected() && handshaken) {
+    if (typeof fn === 'function') {
+      fn(RESULT_OK, {});
+    }
+    return;
+  }
+
+  open_connection(function(err, msg){
+    if (!err) {
+        // The connection was opened and the ws connection callback will automatically
+        // send the handshake, but we here register the listener for the response to
+        // that handshake; should be moved for code clarity
+        eventemitter.on("register_0", function (message) {
+          var ck = message.payload["client-key"];
+          if (typeof ck === 'undefined') {
+
+          } else {
+            store_client_key(ck);
+            handshaken = true;
+            if (typeof fn === 'function') {
+              fn(RESULT_OK, {});
+            }
+          }
+          //  {"type":"registered","id":"register_0","payload":{"client-key":"a32c6abeab6a601d626ccdeb4749f0fa"}}
+        });
+    } else {
+        if (typeof fn === 'function') {
+          fn(RESULT_ERROR, msg);
+        }
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var ip = function() {
+  return remote_ip();
+};
+/*---------------------------------------------------------------------------*/
+var connected = function() {
+  return isConnected();
+};
+/*---------------------------------------------------------------------------*/
+var disconnect = function(fn) {
+  close_connection();
+  eventemitter.once("lgtv_ws_closed", function () {
+    if(typeof fn === 'function') {
+      fn(RESULT_OK);
+    }
+  });
 };
 // ---------------------------------------------------------
 // show a float on the TV
@@ -155,7 +313,8 @@ var unsubscribe = function(id, fn) {
         fn(RESULT_OK, message);
       });
     }
-    ws.send(msg);
+    ws_send(msg);
+    // ws.send(msg);
 
   } catch(err) {
     console.log("Error, not connected to TV.");
@@ -167,7 +326,7 @@ var unsubscribe = function(id, fn) {
 // ---------------------------------------------------------
 // show a float on the TV
 function show_float(text, fn) {
-  send_command("", "request", "ssap://system.notifications/createToast", '{"message": "MSG"}'.replace('MSG', text), null, fn);
+  send_command("", "request", "ssap://system.notifications/createToast", '{"message": "MSG"}'.replace('MSG', text), fn);
 }
 // ---------------------------------------------------------
 // launch browser at URL; will open a new tab if already open
@@ -175,8 +334,9 @@ function open_browser_at(url, fn) {
   // response: {"type":"response","id":"0","payload":{"returnValue":true,"id":"com.webos.app.browser","sessionId":"Y29tLndlYm9zLmFwcC5icm93c2VyOnVuZGVmaW5lZA=="}}
 
   // must start with http:// or https://
+  console.log('opening browser at:%s', url);
   var protocol = url.substring(0, 7).toLowerCase();
-  if (protocol !== 'http://' || protocol !== 'https:/') {
+  if (protocol !== 'http://' && protocol !== 'https:/') {
     url = "http://" + url;
   }
 
@@ -190,81 +350,6 @@ function open_browser_at(url, fn) {
     fn(err, ret);
   });
 }
-/*---------------------------------------------------------------------------*/
-// Connect to TV
-var connect = function(fn) {
-  // open websocket connection and perform handshake
-  console.log("connecting to lgtv");
-
-  // if (connected()) {
-  //   console.log("already connected");
-  //   if (typeof fn === 'function') {
-  //     fn(RESULT_OK, {});
-  //   };
-  // };
-
-  // if (typeof fn === 'function') {
-  //   setTimeout(function() {
-        // fn(true, "could not connect");
-  //   }, 5000);
-
-
-  // Note: the ws connects automatically on creation. Instead, we should have a way
-  // to control connect state, ie connect, close, so we can reconnect at will
-  eventemitter.once("register_0", function (message) {
-    var ck = message.payload["client-key"];
-    //  {"type":"registered","id":"register_0","payload":{"client-key":"a32c6abeab6a601d626ccdeb4749f0fa"}}
-    // console.log("client-key is:" + ck); 
-    store_client_key(ck);
-
-    if (typeof fn === 'function') {
-      fn(RESULT_OK, {});
-    }
-  });
-};
-/*---------------------------------------------------------------------------*/
-var ip = function(fn) {
-    // if (ws.connected) {
-    //   return ws.remotehost.ip;
-    // } else {
-    //   return null;
-    // }
-  if (typeof fn === 'function') {
-    try {
-      var ret = {};
-      fn(RESULT_OK, ret);
-    } catch(err) {
-      console.log("Error:" + err);
-      fn(RESULT_ERROR, err);
-    }
-  }
-};
-/*---------------------------------------------------------------------------*/
-var connected = function() {
-  return (ws.readyState !== WebSocket.OPEN);
-  // return ws.connectionstatus
-  // if (typeof fn === 'function') {
-  //   try {
-  //     var ret = {};
-  //     fn(RESULT_OK, ret);
-  //   } catch(err) {
-  //     console.log("Error:" + err);
-  //     fn(RESULT_ERROR, err);
-  //   }
-  // }
-};
-/*---------------------------------------------------------------------------*/
-var disconnect = function(fn) {
-  // This just closes the websocket connection, need a function from the websocket lib
-  // to do that, and unfortunately this lib does not provide that.
-  ws.close(0, ""); // ?????????????????????????
-
-  eventemitter.once("lgtv_ws_closed", function () {
-    if(typeof fn === 'function') {
-      fn(RESULT_OK);
-    }
-  });
-};
 /*---------------------------------------------------------------------------*/
 var turn_off = function(fn) {
   send_command("", "request", "ssap://system/turnOff", null, fn);
@@ -445,10 +530,10 @@ var volume = function(fn) {
 /*---------------------------------------------------------------------------*/
 var set_volume = function(volumelevel, fn) {
   if (typeof volumelevel !== 'number') {
-    fn(RESULT_ERROR, {reason: "volume must be a number"});
+    fn(RESULT_ERROR, "volume must be a number");
 
   } else if(volumelevel < 0 || volumelevel > 100) {
-    fn(RESULT_ERROR, {reason: "volume must be 0..100"});
+    fn(RESULT_ERROR, "volume must be 0..100");
 
   } else {
     send_command("", "request", "ssap://audio/setVolume", JSON.stringify({volume: volumelevel}), fn);

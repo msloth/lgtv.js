@@ -4,10 +4,6 @@
 //    https://github.com/ConnectSDK/Connect-SDK-Android-Core
 //    https://github.com/CODeRUS/harbour-lgremote-webos
 // 
-// 0: remove 'origin'-header of websocket upgrade packet, it seems to cause trouble
-//      this lib first sent with origin header same as destination header,
-//      so I set it hardcoded to correctly this machine IP etc, but wasn't accepted
-//      got 'invalid origin' in response.
 // 1: send handshake per below -> receive client key if not already
 // 2: the protocol is using JSON strings with requests from the client, responses
 //    from the TV. Subscriptions probably means the TV will push notifications 

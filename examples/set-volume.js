@@ -1,4 +1,4 @@
-lgtv = require("../index");
+lgtv = require("lgtv");
 /*---------------------------------------------------------------------------*/
 var args = process.argv.slice(2);
 var vol = 10;

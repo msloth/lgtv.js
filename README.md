@@ -1,30 +1,62 @@
-# LGTV.js
+# LGTV
+
+## Installation
+
+`npm install lgtv`
+
+## Usage
+
+Prerequisites: First, the device (eg your computer) must be on the same network as the TV. Second, you should enable the TV to broadcast itself as `lgsmarttv.lan` in the local network. This setting is, IIRC, under `Network/LG Connect Apps`. This is necessary in order for this module to find the TV on the network.
+
+Then, follow some of the examples to begin with, eg `examples/show-float.js` to show a float pop up on the screen:
+
+```js
+lgtv = require("lgtv");
+
+lgtv.connect(function(err, response){
+  if (!err) {
+    lgtv.show_float("It works!", function(err, response){
+      if (!err) {
+        lgtv.disconnect();
+      }
+    }); // show float
+  }
+}); // connect
+```
+
+The first time you run it against the TV, you need to give the program access to the TV by answering `yes` to the prompt on the TV. From then on, the received client key is used so you don't have to perform this step again.
+
+Now that you can do this, we also can change input source to eg TV/HDMI/whatever, list and open apps, open browser, open Youtube app, change channel/volume, turn off the TV etc. Basically the only thing that doesn't work right now is a) turning on the TV, which doesn't seem possible this way, and b) opening Youtube at an URL (coming soon).
 
 ## Introduction
 
-The LG Smart TV is a TV running WebOS, ie later 2014 or 2015 models.
+This module is targeting the LG Smart TVs running WebOS, ie later 2014 or 2015 models.
 Previous models used other protocols and won't work with this.
 
 * Controlling the TV
   * finding the TV on your local network
   * establishing a connection, ie successful handshake
-  * establishing control of input source, volume, etc
+  * controlling input source, volume, etc
 
 There is some useful information out there already:
 
 * LG TV:
   * LG remote app on android store
-    - sniff traffic on network as it interacts with TV
-    - reverse engineer by downloading .apk, run dex2jar etc etc
+    - you could sniff traffic on network as it interacts with TV
+    - you could reverse engineer by downloading .apk, run dex2jar etc etc
   * LG remote app by third-party developers
       - https://github.com/CODeRUS/harbour-lgremote-webos
+        -seems like it is written with deep knowledge of WebOS internals
   * look through the open source SDK's and API's published by LG
       - https://github.com/ConnectSDK/Connect-SDK-Android-Core
 
+## Motivation
+
+There is an LG remote control app for Android, but it is horribly slow. Also, it is very generic and mirrors the physical remote control. With this module I can chain a set of commands such as change input to HDMI_1 and set volume 10 and make them happen programmatically instead of finding the right buttons in the app. I also combine this with a corresponding module for controlling a Kodi media player.
 
 # Communication overview
 
-I recently bought a new TV, a LG 60LB870V, which is a 2014 TV running WebOS 1.x. To start with, here's how I started. The same day I got the TV, I ran `nmap` on the TV and `Wireshark` on the network the TV was connected to, with the following results.
+I recently bought a new TV, a LG 60LB870V, which is a 2014 TV running WebOS 1.x. The same day I got the TV, I ran `nmap` on the TV and `Wireshark` on the network the TV was connected to, with the following results (full results at the bottom).
 
 ```
 Port Scanning host results

@@ -1,4 +1,4 @@
-lgtv = require("../index");
+lgtv = require("lgtv");
 /*---------------------------------------------------------------------------*/
 var run_test = function() {
   lgtv.connect(function(err, response){

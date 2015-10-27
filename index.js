@@ -574,7 +574,7 @@ var apps = function(fn) {
         try {
           // extract a nice and simple list of apps
           var applist = {};
-          var launchpoints = response.payload.launchpoints;
+          var launchpoints = response.payload.launchPoints;
           for (var i = launchpoints.length - 1; i >= 0; i--) {
             // var oneapp = {};
             // oneapp["title"] = launchpoints[i]["title"];

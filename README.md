@@ -256,7 +256,7 @@ Service detection performed. Please report any incorrect results at http://nmap.
 Nmap done: 1 IP address (1 host up) scanned in 209.82 seconds
 ```
 
-Update, with the latest firmware as of today, the `1.4.0-2507(afro-ashley)`, the nmap looks like below. Also, I don't see it advertising itself over SSDP like before.
+Update, with the latest firmware as of today, the `1.4.0-2507(afro-ashley)`, the nmap looks like below. Also, I don't see it advertising itself over SSDP like before, nor answer to the ssdp query as it did before.
 
 ```
 -[691]> sudo nmap -sV -p 1-65535 192.168.1.86

@@ -333,6 +333,7 @@ var services_test = function() {
   });
 };
 /*---------------------------------------------------------------------------*/
+// test for getting the IP address after already having connected to the TV
 var ip_test = function() {
     lgtv.ip(function(err, response){
     if (!err) {
@@ -341,6 +342,13 @@ var ip_test = function() {
       console.log("ip failed:" + JSON.stringify(response));
     }
   });
+};
+/*---------------------------------------------------------------------------*/
+// test for finding the IP address of the TV on the LAN
+var discover_ip_test = function(callback, retry_timeout_s) {
+    lgtv.discover_ip(function(err, response){
+      callback(err, response);
+  }, retry_timeout_s);
 };
 /*---------------------------------------------------------------------------*/
 var connected_test = function() {
@@ -445,6 +453,16 @@ var temporarydbg_test = function() {
 // exports.set_channel = set_channel; /* set active channel */
 
 /*---------------------------------------------------------------------------*/
+var retry_timeout = 10;
+discover_ip_test(function(err, ipaddr) {
+  if (err) {
+    console.log("Failed to find TV IP address on the LAN. Verify that TV is on, and that you are on the same LAN/Wifi.");
+  } else {
+    console.log("TV ip addr is: " + ipaddr);
+  }
+}, retry_timeout);
+
+
 connect_test(function(err){
   if (!err) {
     setTimeout(function() {

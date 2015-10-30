@@ -27,6 +27,9 @@ var WebSocketClient = require('websocket').client; // for communication with TV
 var client = new WebSocketClient();
 var handshaken = false;
 
+// for SSDP discover of TV on the LAN
+var dgram = require('dgram');
+
 var eventemitter = new (require('events').EventEmitter); // for match ws request -- response
 eventemitter.setMaxListeners(0); // enable infinite number of listeners
 
@@ -178,19 +181,61 @@ var ws_send = function(str){
     //   eventemitter.emit(json.id, json);
     // });
 /*---------------------------------------------------------------------------*/
+// send the SSDP discover message that the TV will respond to.
+var _send_ssdp_discover = function(socket)
+{
+  var ssdp_rhost = "239.255.255.250";
+  var ssdp_rport = 1900;
 
+  // these fields are all required
+  var ssdp_msg = 'M-SEARCH * HTTP/1.1\r\n';
+  ssdp_msg += 'HOST: 239.255.255.250:1900\r\n';
+  ssdp_msg += 'MAN: "ssdp:discover"\r\n';
+  ssdp_msg += 'MX: 5\r\n';
+  ssdp_msg += "ST: urn:dial-multiscreen-org:service:dial:1\r\n";
+  ssdp_msg += "USER-AGENT: iOS/5.0 UDAP/2.0 iPhone/4\r\n\r\n";
+  var message = new Buffer(ssdp_msg);
 
+  socket.send(message, 0, message.length, ssdp_rport, ssdp_rhost, function(err, bytes) {
+      if (err) throw err;
+      // console.log('SSDP message sent to ' + ssdp_rhost +':'+ ssdp_rport);
+      // console.log(message.toString());
+  });
+};
+/*---------------------------------------------------------------------------*/
+var discover_ip = function(tv_ip_found_callback, retry_timeout_seconds)
+{
+  var server = dgram.createSocket({type: 'udp4'});
 
+  // when server has opened, send a SSDP discover message
+  server.on('listening', function() {
+    // console.log('UDP Server listening.');
+    _send_ssdp_discover(server);
 
+    // retry automatically if set
+    if (retry_timeout_seconds && retry_timeout_seconds > 0) {
+      // set timeout before next probe
+      // XXXXX
 
+      // after timeout seconds, invoke callback indicating failure
+      // tv_ip_found_callback(true, "");
+    }
+  });
 
-
-
-
-
-
-
-// ---------------------------------------------------------
+  // scan incoming messages for the magic string
+  server.on('message', function(message, remote) {
+    if (message.indexOf("LG Smart TV")) {
+      server.close();
+      if (tv_ip_found_callback) {
+        tv_ip_found_callback(false, remote.address);
+      }
+    }
+  });
+  
+  server.bind(); // listen to 0.0.0.0:random
+  return server;
+};
+/*---------------------------------------------------------------------------*/
 // send a command to the TV after having established a paired connection
 var command_count = 0;
 
@@ -822,6 +867,7 @@ exports.volume = volume; /* get volume */
 exports.set_volume = set_volume; /* set volume */
 
 // connect and power related
+exports.discover_ip = discover_ip; /* discover the TV IP address */
 exports.connect = connect; /* connect to TV */
 exports.disconnect = disconnect; /* disconnect from TV */
 exports.turn_off = turn_off; /* turn the TV off */

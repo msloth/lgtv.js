@@ -6,7 +6,7 @@
 
 ## Usage
 
-Prerequisites: First, the device (eg your computer) must be on the same network as the TV. Second, you should enable the TV to broadcast itself as `lgsmarttv.lan` in the local network. This setting is, IIRC, under `Network/LG Connect Apps`. This is necessary in order for this module to find the TV on the network.
+Prerequisites: First, the device (eg your computer) must be on the same network as the TV. Second, you should enable the TV to broadcast itself as `lgsmarttv.lan` in the local network. This setting is under `Network/LG Connect Apps`. This is necessary in order for this module to find the TV on the network and allow apps to connect.
 
 Then, follow some of the examples to begin with, eg `examples/show-float.js` to show a float pop up on the screen:
 
@@ -250,8 +250,125 @@ SF:\.com/dial\"><screenId>lf85fem4srqg84i7vis9ppj0ie</screenId></additiona
 SF:lData></service>")%r(FourOhFourRequest,52,"HTTP/1\.1\x20404\x20Not\x20F
 SF:ound\r\nDate:\x20Tue,\x2030\x20Dec\x202014\x2013:13:59\x20GMT\r\nConnec
 SF:tion:\x20close\r\n\r\n");
-MAC Address: C8:02:10:3B:23:14 (Unknown)
+MAC Address: <redacted> (Unknown)
 
 Service detection performed. Please report any incorrect results at http://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 209.82 seconds
 ```
+
+Update, with the latest firmware as of today, the `1.4.0-2507(afro-ashley)`, the nmap looks like below. Also, I don't see it advertising itself over SSDP like before, nor answer to the ssdp query as it did before.
+
+```
+-[691]> sudo nmap -sV -p 1-65535 192.168.1.86
+Password:
+
+Starting Nmap 6.40-2 ( http://nmap.org ) at 2015-10-29 21:37 CET
+Nmap scan report for 192.168.1.86
+Host is up (0.0076s latency).
+Not shown: 65525 closed ports
+PORT      STATE SERVICE     VERSION
+1701/tcp  open  tcpwrapped
+1742/tcp  open  tcpwrapped
+1881/tcp  open  tcpwrapped
+1900/tcp  open  upnp?
+3000/tcp  open  ppp?
+3001/tcp  open  ssl/nessus?
+9955/tcp  open  unknown
+9998/tcp  open  distinct32?
+18181/tcp open  opsec-cvp?
+36866/tcp open  unknown
+6 services unrecognized despite returning data. If you know the service/version, please submit the following fingerprints at http://www.insecure.org/cgi-bin/servicefp-submit.cgi :
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port1900-TCP:V=6.40-2%I=7%D=10/29%Time=563283C6%P=x86_64-apple-darwin10
+SF:.8.0%r(GetRequest,52,"HTTP/1\.1\x20404\x20Not\x20Found\r\nDate:\x20Thu,
+SF:\x2029\x20Oct\x202015\x2020:38:26\x20GMT\r\nConnection:\x20close\r\n\r\
+SF:n")%r(HTTPOptions,52,"HTTP/1\.1\x20404\x20Not\x20Found\r\nDate:\x20Thu,
+SF:\x2029\x20Oct\x202015\x2020:38:31\x20GMT\r\nConnection:\x20close\r\n\r\
+SF:n")%r(FourOhFourRequest,52,"HTTP/1\.1\x20404\x20Not\x20Found\r\nDate:\x
+SF:20Thu,\x2029\x20Oct\x202015\x2020:38:31\x20GMT\r\nConnection:\x20close\
+SF:r\n\r\n");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port3000-TCP:V=6.40-2%I=7%D=10/29%Time=563283CB%P=x86_64-apple-darwin10
+SF:.8.0%r(GetRequest,58,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Thu,\x2029\x20
+SF:Oct\x202015\x2020:38:31\x20GMT\r\nConnection:\x20close\r\n\r\nHello\x20
+SF:world\r\n")%r(HTTPOptions,58,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Thu,\x
+SF:2029\x20Oct\x202015\x2020:38:31\x20GMT\r\nConnection:\x20close\r\n\r\nH
+SF:ello\x20world\r\n");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port3001-TCP:V=6.40-2%T=SSL%I=7%D=10/29%Time=563283E8%P=x86_64-apple-da
+SF:rwin10.8.0%r(GetRequest,58,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Thu,\x20
+SF:29\x20Oct\x202015\x2020:39:00\x20GMT\r\nConnection:\x20close\r\n\r\nHel
+SF:lo\x20world\r\n")%r(HTTPOptions,58,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20
+SF:Thu,\x2029\x20Oct\x202015\x2020:39:00\x20GMT\r\nConnection:\x20close\r\
+SF:n\r\nHello\x20world\r\n");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port9955-TCP:V=6.40-2%I=7%D=10/29%Time=563283D5%P=x86_64-apple-darwin10
+SF:.8.0%r(Kerberos,F,"ERROR\x20Unknown\r\n");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port9998-TCP:V=6.40-2%I=7%D=10/29%Time=563283CB%P=x86_64-apple-darwin10
+SF:.8.0%r(GetRequest,5C8,"HTTP/1\.1\x20200\x20OK\r\nConnection:\x20close\r
+SF:\nContent-Length:\x201395\r\nContent-Type:\x20text/html\r\n\r\n<!DOCTYP
+SF:E\x20html>\n<html><head>\n<script\x20type=\"text/javascript\">\nfunctio
+SF:n\x20createPageList\(\)\x20{\n\x20\x20\x20\x20var\x20xhr\x20=\x20new\x2
+SF:0XMLHttpRequest;\n\x20\x20\x20\x20xhr\.open\(\"GET\",\x20\"/pagelist\.j
+SF:son\"\);\n\x20\x20\x20\x20xhr\.onload\x20=\x20function\(e\)\x20{\n\x20\
+SF:x20\x20\x20\x20\x20\x20\x20if\x20\(xhr\.status\x20==\x20200\)\x20{\n\x2
+SF:0\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20var\x20pages\x20=\x20JSON\
+SF:.parse\(xhr\.responseText\);\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\
+SF:x20\x20if\x20\(pages\.length\)\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2
+SF:0\x20\x20\x20\x20\x20\x20document\.getElementById\(\"noPageNotice\"\)\.
+SF:style\.display\x20=\x20\"none\";\n\n\x20\x20\x20\x20\x20\x20\x20\x20\x2
+SF:0\x20\x20\x20var\x20pageList\x20=\x20document\.createElement\(\"ol\"\);
+SF:\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20for\x20\(var\x20i\x20
+SF:in\x20pages\)\x20{\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2
+SF:0\x20\x20\x20var\x20link\x20=\x20document\.createElement\(\"a\"\);\n\x2
+SF:0\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20var\x20tit
+SF:le\x20=\x20pages\[i\]\.title\x20\?\x20pages\[i\]\.title\x20:\x20\(\"Pag
+SF:e\x20\"\x20\+\x20\(Number\(pages\[i\]\.id\)\)\);\n\x20\x20\x20\x20\x20\
+SF:x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20var\x20url\x20=\x20pages\[i\
+SF:]\.url;\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x
+SF:20link\.appendChild\(document\.createTextNode\(title\x20\+\x20\(url\x20
+SF:\?\x20\(\"\x20\[\"\x20\+\x20url\x20\+\x20\"\]\"\)\x20:\x20\"\"\x20\)\)\
+SF:);\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20lin
+SF:k\.setAttribute\(\"hre")%r(HTTPOptions,5C8,"HTTP/1\.1\x20200\x20OK\r\nC
+SF:onnection:\x20close\r\nContent-Length:\x201395\r\nContent-Type:\x20text
+SF:/html\r\n\r\n<!DOCTYPE\x20html>\n<html><head>\n<script\x20type=\"text/j
+SF:avascript\">\nfunction\x20createPageList\(\)\x20{\n\x20\x20\x20\x20var\
+SF:x20xhr\x20=\x20new\x20XMLHttpRequest;\n\x20\x20\x20\x20xhr\.open\(\"GET
+SF:\",\x20\"/pagelist\.json\"\);\n\x20\x20\x20\x20xhr\.onload\x20=\x20func
+SF:tion\(e\)\x20{\n\x20\x20\x20\x20\x20\x20\x20\x20if\x20\(xhr\.status\x20
+SF:==\x20200\)\x20{\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20var\x
+SF:20pages\x20=\x20JSON\.parse\(xhr\.responseText\);\n\x20\x20\x20\x20\x20
+SF:\x20\x20\x20\x20\x20\x20\x20if\x20\(pages\.length\)\n\x20\x20\x20\x20\x
+SF:20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20document\.getElementById\
+SF:(\"noPageNotice\"\)\.style\.display\x20=\x20\"none\";\n\n\x20\x20\x20\x
+SF:20\x20\x20\x20\x20\x20\x20\x20\x20var\x20pageList\x20=\x20document\.cre
+SF:ateElement\(\"ol\"\);\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20
+SF:for\x20\(var\x20i\x20in\x20pages\)\x20{\n\x20\x20\x20\x20\x20\x20\x20\x
+SF:20\x20\x20\x20\x20\x20\x20\x20\x20var\x20link\x20=\x20document\.createE
+SF:lement\(\"a\"\);\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\
+SF:x20\x20\x20var\x20title\x20=\x20pages\[i\]\.title\x20\?\x20pages\[i\]\.
+SF:title\x20:\x20\(\"Page\x20\"\x20\+\x20\(Number\(pages\[i\]\.id\)\)\);\n
+SF:\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20var\x20
+SF:url\x20=\x20pages\[i\]\.url;\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\
+SF:x20\x20\x20\x20\x20\x20link\.appendChild\(document\.createTextNode\(tit
+SF:le\x20\+\x20\(url\x20\?\x20\(\"\x20\[\"\x20\+\x20url\x20\+\x20\"\]\"\)\
+SF:x20:\x20\"\"\x20\)\)\);\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x
+SF:20\x20\x20\x20\x20link\.setAttribute\(\"hre");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port36866-TCP:V=6.40-2%I=7%D=10/29%Time=563283CB%P=x86_64-apple-darwin1
+SF:0.8.0%r(GetRequest,145,"HTTP/1\.1\x20200\x20OK\r\nContent-Type:\x20text
+SF:/xml\r\nDate:\x20Thu,\x2029\x20Oct\x202015\x2020:38:31\x20GMT\r\nConnec
+SF:tion:\x20close\r\n\r\n<\?xml\x20version=\"1\.0\"\x20encoding=\"UTF-8\"\
+SF:?><service\x20xmlns=\"urn:dial-multiscreen-org:schemas:dial\"><name></n
+SF:ame><options\x20allowStop=\"true\"/><state>running</state><link\x20rel=
+SF:\"run\"\x20href=\"run\"/><additionalData></additionalData></service>")%
+SF:r(FourOhFourRequest,52,"HTTP/1\.1\x20404\x20Not\x20Found\r\nDate:\x20Th
+SF:u,\x2029\x20Oct\x202015\x2020:38:36\x20GMT\r\nConnection:\x20close\r\n\
+SF:r\n");
+MAC Address: <redacted> (Unknown)
+
+Service detection performed. Please report any incorrect results at http://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 180.22 seconds
+```
+

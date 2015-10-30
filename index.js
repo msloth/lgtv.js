@@ -307,16 +307,9 @@ var _check_host_string = function(hoststr)
 // or undefined for using the default "lgsmarttv.lan"
 
 var connect = function(host, fn) {
-  // open websocket connection and perform handshake
-  if (host === undefined) {
-    host = wsurl;
-  }
-  host = _check_host_string(host);
-  if (host === false) {
-    // provided host string is wrong, throw something
-    // XXXX
-  }
-
+  // if already connected, no need to connect again
+  // (unless hostname is new, but this package is basically written for the usecase
+  // of having a single TV on the LAN)
   if (isConnected() && handshaken) {
     if (typeof fn === 'function') {
       fn(RESULT_OK, {});
@@ -324,6 +317,20 @@ var connect = function(host, fn) {
     return;
   }
 
+  // sanitize and set hostname
+  if (host === undefined) {
+    host = wsurl;
+  } else if (typeof(host) !== 'string') {
+    // XXXXX error, argument error
+    // throw something
+  }
+  host = _check_host_string(host);
+  if (host === false) {
+    // provided host string is wrong, throw something
+    // XXXX
+  }
+
+  // open websocket connection and perform handshake
   open_connection(host, function(err, msg){
     if (!err) {
         // The connection was opened and the ws connection callback will automatically

@@ -203,22 +203,31 @@ var _send_ssdp_discover = function(socket)
   });
 };
 /*---------------------------------------------------------------------------*/
-var discover_ip = function(tv_ip_found_callback, retry_timeout_seconds)
+var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
 {
   var server = dgram.createSocket({type: 'udp4'});
+  var timeout = 0;
+  var cb = tv_ip_found_callback || undefined;
+
+  // sanitize parameters and set default otherwise
+  if (retry_timeout_seconds && typeof(retry_timeout_seconds) === 'number') {
+    timeout = retry_timeout_seconds;
+  } else if (!tv_ip_found_callback && typeof(retry_timeout_seconds) === 'function') {
+    // overloading, the first parameter was not a timeout, but the callback
+    // and we thus assume no timeout is given
+    cb = retry_timeout_seconds;
+  }
 
   // when server has opened, send a SSDP discover message
   server.on('listening', function() {
-    // console.log('UDP Server listening.');
     _send_ssdp_discover(server);
 
     // retry automatically if set
-    if (retry_timeout_seconds && retry_timeout_seconds > 0) {
+    if (timeout > 0) {
       // set timeout before next probe
       // XXXXX
-
       // after timeout seconds, invoke callback indicating failure
-      // tv_ip_found_callback(true, "");
+      // cb(true, "");
     }
   });
 
@@ -226,8 +235,8 @@ var discover_ip = function(tv_ip_found_callback, retry_timeout_seconds)
   server.on('message', function(message, remote) {
     if (message.indexOf("LG Smart TV")) {
       server.close();
-      if (tv_ip_found_callback) {
-        tv_ip_found_callback(false, remote.address);
+      if (cb) {
+        cb(false, remote.address);
       }
     }
   });

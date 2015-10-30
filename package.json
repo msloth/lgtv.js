@@ -1,6 +1,6 @@
 {
   "name": "lgtv",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Simple lib to interact with and control an LG WebOS smart TV.",
   "main": "index.js",
   "scripts": {

@@ -272,8 +272,8 @@ var set_volume_test = function(vl) {
   });
 };
 /*---------------------------------------------------------------------------*/
-var connect_test = function(fn) {
-    lgtv.connect("192.168.1.86", function(err, response){
+var connect_test = function(hostname, fn) {
+    lgtv.connect(hostname, function(err, response){
     if (!err) {
       console.log("connect succeeded:" + JSON.stringify(response));
     } else {
@@ -463,7 +463,7 @@ discover_ip_test(function(err, ipaddr) {
 }, retry_timeout);
 
 
-connect_test(function(err){
+connect_test("192.168.1.86", function(err){
   if (!err) {
     setTimeout(function() {
       // disconnect_test();  // funkade inte

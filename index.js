@@ -147,13 +147,6 @@ var ws_send = function(str){
     return clientconnection.connected;
 };
 /*---------------------------------------------------------------------------*/
-
-
-
-
-
-
-/*---------------------------------------------------------------------------*/
 // this is the old version, using the ws lib; above is the new, using websocket lib
     // try {
     //   var ws = new WebSocket(wsurl);
@@ -232,21 +225,52 @@ var send_command = function(prefix, msgtype, uri, payload, fn) {
   }
 };
 //------------------------------------------
-var open_connection = function(fn){
+var open_connection = function(host, fn){
     // console.log("connecting");
     clientconnection = {};
     try {
-      client.connect(wsurl);
+      client.connect(host);
       fn(RESULT_OK, {});
     } catch(error) {
       fn(RESULT_ERROR, error.toString());
     }
 };
 /*---------------------------------------------------------------------------*/
-// Connect to TV
-var connect = function(fn) {
+// verify that the provided host string contains ws protocol and port 3000,
+// valid input examples:
+//    lgsmarttv.lan
+//    192.168.1.86
+//    192.168.1.86:3000
+//    ws://192.168.1.86:3000
+//    ws://192.168.1.86
+// if protocol or port is lacking, they are added
+// returns either the corrected host string, or false if totally invalid hoststring
+
+var _check_host_string = function(hoststr)
+{
+  if (hoststr.indexOf("ws://") !== 0) {
+    hoststr = "ws://" + hoststr;
+  }
+  if (hoststr.indexOf(":3000") !== (hoststr.length - 5)) {
+    hoststr += ":3000";
+  }
+
+  return hoststr;
+};
+/*---------------------------------------------------------------------------*/
+// Connect to TV using either a host string (eg "192.168.1.213", "lgsmarttv.lan")
+// or undefined for using the default "lgsmarttv.lan"
+
+var connect = function(host, fn) {
   // open websocket connection and perform handshake
-  console.log("connecting to lgtv");
+  if (host === undefined) {
+    host = wsurl;
+  }
+  host = _check_host_string(host);
+  if (host === false) {
+    // provided host string is wrong, throw something
+    // XXXX
+  }
 
   if (isConnected() && handshaken) {
     if (typeof fn === 'function') {
@@ -255,7 +279,7 @@ var connect = function(fn) {
     return;
   }
 
-  open_connection(function(err, msg){
+  open_connection(host, function(err, msg){
     if (!err) {
         // The connection was opened and the ws connection callback will automatically
         // send the handshake, but we here register the listener for the response to

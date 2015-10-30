@@ -273,7 +273,7 @@ var set_volume_test = function(vl) {
 };
 /*---------------------------------------------------------------------------*/
 var connect_test = function(fn) {
-    lgtv.connect(function(err, response){
+    lgtv.connect("192.168.1.86", function(err, response){
     if (!err) {
       console.log("connect succeeded:" + JSON.stringify(response));
     } else {

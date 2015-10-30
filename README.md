@@ -55,6 +55,7 @@ If you don't know the IP of the TV, or the hostname, you can scan for it using t
 ```js
 lgtv = require("lgtv");
 
+var retry_timeout = 10; // seconds
 lgtv.discover_ip(retry_timeout, function(err, ipaddr) {
   if (err) {
     console.log("Failed to find TV IP address on the LAN. Verify that TV is on, and that you are on the same LAN/Wifi.");
@@ -68,8 +69,9 @@ If you want to autodiscover each time, this would work,
 
 ```js
 lgtv = require("lgtv");
-lgtv.discover_ip(retry_timeout, function(err, ipaddr) {
 
+var retry_timeout = 10; // seconds
+lgtv.discover_ip(retry_timeout, function(err, ipaddr) {
   if (err) {
     console.log("Failed to find TV IP address on the LAN. Verify that TV is on, and that you are on the same LAN/Wifi.");
 

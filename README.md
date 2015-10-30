@@ -2,11 +2,15 @@
 
 ## Installation
 
-`npm install lgtv`
+`npm install lgtv` and set up the TV per below.
 
-## Usage
+## Prerequisites
 
-Prerequisites: First, the device (eg your computer) must be on the same network as the TV. Second, you should enable the TV to broadcast itself as `lgsmarttv.lan` in the local network. This setting is under `Network/LG Connect Apps`. This is necessary in order for this module to find the TV on the network and allow apps to connect.
+First, the device (eg your computer) must be on the same network as the TV. Second, you should enable the TV to broadcast itself as `lgsmarttv.lan` in the local network. This setting is under `Network/LG Connect Apps`. This is necessary in order for this module to find the TV on the network and allow apps to connect. You also need to be on the same network as the TV.
+
+## Quick start
+
+The first time you run it against the TV, you need to give the program access to the TV by answering `yes` to the prompt on the TV. From then on, the received client key is used so you don't have to perform this step again.
 
 Then, follow some of the examples to begin with, eg `examples/show-float.js` to show a float pop up on the screen:
 
@@ -24,17 +28,72 @@ lgtv.connect(function(err, response){
 }); // connect
 ```
 
-The first time you run it against the TV, you need to give the program access to the TV by answering `yes` to the prompt on the TV. From then on, the received client key is used so you don't have to perform this step again.
-
 Now that you can do this, we also can change input source to eg TV/HDMI/whatever, list and open apps, open browser, open Youtube app, change channel/volume, turn off the TV etc. Basically the only thing that doesn't work right now is a) turning on the TV, which doesn't seem possible this way, and b) opening Youtube at an URL (coming soon).
+
+### Using a hostname or IP-address of the TV
+
+The above uses a default hostname, `lgsmarttv.lan`. Your TV may not follow that, or you may have more than one TV. Then you can specify the hostname like below. The hostname can be eg `kitchen-tv.lan`, `192.168.1.214` or similar.
+
+```js
+lgtv = require("lgtv");
+
+lgtv.connect("192.168.1.214", function(err, response){
+  if (!err) {
+    lgtv.show_float("It works!", function(err, response){
+      if (!err) {
+        lgtv.disconnect();
+      }
+    }); // show float
+  }
+}); // connect
+```
+
+### Auto-detecting the TV on the network
+
+If you don't know the IP of the TV, or the hostname, you can scan for it using the `discover_ip()` function like below. Beware that this takes 3-4 seconds for the round-trip times (the TV is slow to respond to the SSDP discover probe).
+
+```js
+lgtv = require("lgtv");
+
+lgtv.discover_ip(retry_timeout, function(err, ipaddr) {
+  if (err) {
+    console.log("Failed to find TV IP address on the LAN. Verify that TV is on, and that you are on the same LAN/Wifi.");
+  } else {
+    console.log("TV ip addr is: " + ipaddr);
+  }
+});
+```
+
+If you want to autodiscover each time, this would work,
+
+```js
+lgtv = require("lgtv");
+lgtv.discover_ip(retry_timeout, function(err, ipaddr) {
+
+  if (err) {
+    console.log("Failed to find TV IP address on the LAN. Verify that TV is on, and that you are on the same LAN/Wifi.");
+
+  } else {
+    lgtv.connect(ipaddr, function(err, response){
+      if (!err) {
+        lgtv.show_float("Found you!", function(err, response){
+          if (!err) {
+            lgtv.disconnect();
+          }
+        }); // show float
+      }
+    }); // connect
+  }
+});
+```
 
 ## Introduction
 
 This module is targeting the LG Smart TVs running WebOS, ie later 2014 or 2015 models.
-Previous models used other protocols and won't work with this.
+Previous models used another OS and other protocols and won't work with this.
 
-* Controlling the TV
-  * finding the TV on your local network
+* Controlling the TV means
+  * (finding the TV on your local network)
   * establishing a connection, ie successful handshake
   * controlling input source, volume, etc
 

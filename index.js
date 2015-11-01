@@ -328,10 +328,12 @@ var connect = function(host, fn) {
 
   // sanitize and set hostname
   if (host === undefined) {
+    // no hostname specified, use default
     host = wsurl;
   } else if (typeof(host) !== 'string') {
     // XXXXX error, argument error
-    // throw something
+    // throw something or at least give ample warning
+    host = wsurl;
   }
   host = _check_host_string(host);
   if (host === false) {

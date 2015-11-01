@@ -17,7 +17,8 @@ Then, follow some of the examples to begin with, eg `examples/show-float.js` to 
 ```js
 lgtv = require("lgtv");
 
-lgtv.connect(function(err, response){
+var tv_ip_address = "192.168.1.214";
+lgtv.connect(tv_ip_address, function(err, response){
   if (!err) {
     lgtv.show_float("It works!", function(err, response){
       if (!err) {

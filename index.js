@@ -205,7 +205,7 @@ var _send_ssdp_discover = function(socket)
 /*---------------------------------------------------------------------------*/
 var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
 {
-  var server = dgram.createSocket({type: 'udp4'});
+  var server = dgram.createSocket('udp4');
   var timeout = 0;
   var cb = tv_ip_found_callback || undefined;
 

@@ -1,19 +1,19 @@
-// 
+//
 // LG webos smart TV control app
 // references:
 //    https://github.com/ConnectSDK/Connect-SDK-Android-Core
 //    https://github.com/CODeRUS/harbour-lgremote-webos
-// 
+//
 // 1: send handshake per below -> receive client key if not already
 // 2: the protocol is using JSON strings with requests from the client, responses
-//    from the TV. Subscriptions probably means the TV will push notifications 
+//    from the TV. Subscriptions probably means the TV will push notifications
 //    without prior individual requests.
 // 3: client request has these fields:
 //        type : register/request/subscribe
 //        id   : command + _ + message count (the response will mirror this number)
 //        uri  : command endpoint URI
 //        payload  : optional, eg input source string when changing input
-// 
+//
 // All callbacks follow the common pattern of function(error, ....) {}
 // ie first argument is false if the call went ok, or true if an error occurred.
 // Then, the second argument is most often the result if applicable, or not
@@ -22,7 +22,7 @@
 var fs = require('fs'); // for storing client key
 // var http = require('http'); // for communication with Kodi
 
-// var WebSocket = require('ws'); 
+// var WebSocket = require('ws');
 var WebSocketClient = require('websocket').client; // for communication with TV
 var client = new WebSocketClient();
 var handshaken = false;
@@ -240,7 +240,7 @@ var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
       }
     }
   });
-  
+
   server.bind(); // listen to 0.0.0.0:random
   return server;
 };
@@ -265,7 +265,7 @@ var send_command = function(prefix, msgtype, uri, payload, fn) {
   try {
     if (typeof fn === 'function') {
       eventemitter.once(prefix + command_count, function (message) {
-        // console.log("*** emitter listener for " + prefix + command_count + " with message:" + message); 
+        // console.log("*** emitter listener for " + prefix + command_count + " with message:" + message);
         fn(RESULT_OK, message);
       });
     }
@@ -392,7 +392,7 @@ var unsubscribe = function(id, fn) {
   try {
     if (typeof fn === 'function') {
       eventemitter.once(prefix + command_count, function (message) {
-        // console.log("*** emitter listener for " + prefix + command_count + " with message:" + message); 
+        // console.log("*** emitter listener for " + prefix + command_count + " with message:" + message);
         fn(RESULT_OK, message);
       });
     }
@@ -455,12 +455,12 @@ var channellist = function(fn) {
           retlist.channels.push(ch);
         }
         fn(RESULT_OK, JSON.stringify(retlist));
-      
+
       } catch(e) {
         console.log("Error:" + e);
         fn(RESULT_ERROR, resp);
       }
-    
+
     } else {
       console.log("Error:" + err);
       fn(RESULT_ERROR, err);
@@ -525,7 +525,7 @@ var inputlist = function(fn) {
             ret[devs[i].id] = devs[i].icon;
           }
           console.log(ret);
-          
+
           fn(RESULT_OK, ret);
         } catch(error) {
           console.log("Error:" + error);
@@ -720,31 +720,75 @@ var close_app = function(appid, fn) {
   });
 };
 /*---------------------------------------------------------------------------*/
+
+
+var  pointer = null;
+
 var input_pointer_connect = function(fn) {
-  if (typeof fn === 'function') {
-    fn(RESULT_ERROR, {reason: "not implemented"});
-  }
+  pointer = null;
+  send_command("", "request", "ssap://com.webos.service.networkinput/getPointerInputSocket", "", function(err, resp) {
+    if (!err) {
+        var pointer_client = new WebSocketClient();
+        pointer_client.on('error', function(error) {
+             fn(RESULT_ERROR, error);
+        });
+        pointer_client.on('connect', function(connection) {
+            pointer = connection;
+
+            connection.on('close', function() {
+              pointer = null;
+            });
+            fn(RESULT_OK, {status: 'connected'});
+        });
+        pointer_client.connect(resp.payload.socketPath);
+    } else {
+        fn(RESULT_ERROR, resp.payload.errorText);
+    }
+  });
 };
 /*---------------------------------------------------------------------------*/
+var input_pointer_send = function(send, fn)
+{
+   if (pointer)  {
+      send();
+      if (typeof fn === 'function') {
+        fn(RESULT_OK);
+      }
+   } else {
+      input_pointer_connect(function(error, message) {
+        if (!error) {
+          send();
+          if (typeof fn === 'function') {
+            fn(RESULT_OK);
+          }
+        } else {
+          if (typeof fn === 'function') {
+             fn(error, message);
+          }
+        }
+      });
+   }
+};
+
 var input_pointer_move = function(dx, dy, fn) {
-    // function sendMove(dx, dy) {
-    //         pointerSocket.sendLogMessage('type:move\ndx:' + dx + '\ndy:' + dy + '\ndown:0\n\n')
-  if (typeof fn === 'function') {
-    fn(RESULT_ERROR, {reason: "not implemented"});
-  }
+    input_pointer_send(function() {
+      pointer.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:0\n" + "\n");
+    }, fn);
 };
 /*---------------------------------------------------------------------------*/
 var input_pointer_click = function(fn) {
-    // function sendClick() {
-    //         pointerSocket.sendLogMessage('type:click\n\n')
-  if (typeof fn === 'function') {
-    fn(RESULT_ERROR, {reason: "not implemented"});
-  }
+    input_pointer_send(function() {
+      pointer.send("type:click\n" + "\n");
+    }, fn);
 };
 /*---------------------------------------------------------------------------*/
 var input_pointer_disconnect = function(fn) {
+  if (pointer) {
+      pointer.close();
+      pointer = null;
+  };
   if (typeof fn === 'function') {
-    fn(RESULT_ERROR, {reason: "not implemented"});
+    fn(RESULT_OK);
   }
 };
 /*---------------------------------------------------------------------------*/
@@ -758,10 +802,9 @@ var input_text = function(text, fn) {
 };
 /*---------------------------------------------------------------------------*/
 var input_pointer_scroll = function(dx, dy, fn) {
-  // pointerSocket.sendLogMessage('type:scroll\ndx:0\ndy:' + dy + '\ndown:0\n\n')
-  if (typeof fn === 'function') {
-    fn(RESULT_ERROR, {reason: "not implemented"});
-  }
+    input_pointer_send(function() {
+      pointer.send("type:scroll\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "\n");
+    }, fn);
 };
 /*---------------------------------------------------------------------------*/
 var input_enter = function(fn) {

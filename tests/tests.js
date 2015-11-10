@@ -62,6 +62,114 @@ var input_volumedown_test = function() {
   });
 };
 /*---------------------------------------------------------------------------*/
+var input_channel_up_test = function() {
+  lgtv.input_channel_up(function(err, response){
+    if (!err) {
+      console.log("input_channel_up_test succeeded");
+    } else {
+      console.log("input_channel_up_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_channel_down_test = function() {
+  lgtv.input_channel_down(function(err, response){
+    if (!err) {
+      console.log("input_channel_down_test succeeded");
+    } else {
+      console.log("input_channel_down_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_media_play_test = function() {
+  lgtv.input_media_play(function(err, response){
+    if (!err) {
+      console.log("input_media_play_test succeeded");
+    } else {
+      console.log("input_media_play_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_media_stop_test = function() {
+  lgtv.input_media_stop(function(err, response){
+    if (!err) {
+      console.log("input_media_stop_test succeeded");
+    } else {
+      console.log("input_media_stop_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_media_pause_test = function() {
+  lgtv.input_media_pause(function(err, response ){
+    if (!err) {
+      console.log("input_media_pause_test succeeded");
+    } else {
+      console.log("input_media_pause_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_media_rewind_test = function() {
+  lgtv.input_media_rewind(function(err, response){
+    if (!err) {
+      console.log("input_media_rewind_test succeeded");
+    } else {
+      console.log("input_media_rewind_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_media_forward_test = function() {
+  lgtv.input_media_forward(function(err, response ){
+    if (!err) {
+      console.log("input_media_forward_test succeeded");
+    } else {
+      console.log("input_media_forward_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_three_d_on_test = function() {
+  lgtv.input_three_d_on(function(err, response){
+    if (!err) {
+      console.log("input_three_d_on_test succeeded");
+    } else {
+      console.log("input_three_d_on_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
+var input_three_d_off_test = function() {
+  lgtv.input_three_d_off(function(err, response ){
+    if (!err) {
+      console.log("input_three_d_off_test succeeded");
+    } else {
+      console.log("input_three_d_off_test failed:");
+      console.log(err.toString());
+      console.log(response);
+    }
+  });
+};
+/*---------------------------------------------------------------------------*/
 var input_backspace_test = function() {
     lgtv.input_backspace(function(err, response){
     if (!err) {
@@ -303,12 +411,12 @@ var turn_off_test = function() {
   });
 };
 /*---------------------------------------------------------------------------*/
-var status_test = function() {
-    lgtv.status(function(err, response){
+var get_status_test = function() {
+    lgtv.get_status(function(err, response){
     if (!err) {
-      console.log("status succeeded:" + JSON.stringify(response));
+      console.log("get status succeeded:" + JSON.stringify(response));
     } else {
-      console.log("status failed:" + JSON.stringify(response));
+      console.log("get status failed:" + JSON.stringify(response));
     }
   });
 };
@@ -525,6 +633,17 @@ connect_test("192.168.1.86", function(err){
     // input_enter_test();
     // input_backspace_test();
     // input_pause_test();
+
+    // input_channel_up_test();
+    // input_channel_down_test();
+    // input_three_d_on_test();
+    // input_three_d_off_test();
+    // input_media_play_test();
+    // input_media_pause_test();
+    // input_media_stop_test();
+    // input_media_rewind_test();
+    // input_media_forward_test();
+
     // open_browser_at_test("www.google.com");
     // set_channel_test("0_3_10_0_0_65535_0");
     // set_channel_test("boguschannel"); // should fail
@@ -556,7 +675,7 @@ connect_test("192.168.1.86", function(err){
     // start_app_test("bogusapp");
     // close_app_test("youtube.leanback.v4");
 
-    // status_test(); // gives audio status, should instead give other status right?
+    // get_status_test(); // gives audio status, should instead give other status right?
     // inputlist_test();
     // set_input_test("HDMI_1");
     // set_input_test("bogus_input"); // should fail

@@ -491,6 +491,7 @@ var channel = function(fn) {
   });
 };
 /*---------------------------------------------------------------------------*/
+/* set the active channel; use channelId as from the channellist, such as eg 0_13_7_0_0_1307_0 */
 var set_channel = function(channel, fn) {
   send_command("", "request", "ssap://tv/openChannel", JSON.stringify({channelId: channel}), function(err, resp){
     if (err) {
@@ -623,7 +624,43 @@ var set_volume = function(volumelevel, fn) {
   }
 };
 /*---------------------------------------------------------------------------*/
-var status = function(fn) {
+var input_media_play = function(fn) {
+  send_command("", "request", "ssap://media.controls/play", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_media_stop = function(fn) {
+  send_command("", "request", "ssap://media.controls/stop", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_media_pause = function(fn) {
+  send_command("", "request", "ssap://media.controls/pause", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_media_rewind = function(fn) {
+  send_command("", "request", "ssap://media.controls/rewind", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_media_forward = function(fn) {
+  send_command("", "request", "ssap://media.controls/fastForward", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_channel_up = function(fn) {
+  send_command("", "request", "ssap://tv/channelUp", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_channel_down = function(fn) {
+  send_command("", "request", "ssap://tv/channelDown", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_three_d_on = function(fn) {
+  send_command("", "request", "ssap://com.webos.service.tv.display/set3DOn", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var input_three_d_off = function(fn) {
+  send_command("", "request", "ssap://com.webos.service.tv.display/set3DOff", null, fn);
+};
+/*---------------------------------------------------------------------------*/
+var get_status = function(fn) {
   send_command("status_", "request", "ssap://audio/getStatus", null, fn);
   // send_command("status_", "subscribe", "ssap://audio/getStatus", null, fn);
 };
@@ -856,6 +893,15 @@ exports.input_play = input_play; /* remote control 'play' */
 exports.input_stop = input_stop; /* remote control 'stop' */
 exports.input_volumeup = input_volumeup; /* remote control 'volume up' */
 exports.input_volumedown = input_volumedown; /* remote control 'volume down' */
+exports.input_channel_up = input_channel_up; /* remote control volume up */
+exports.input_channel_down = input_channel_down; /* remote control volume down */
+exports.input_media_play = input_media_play; /* remote control play */
+exports.input_media_stop = input_media_stop; /* remote control stop */
+exports.input_media_pause = input_media_pause; /* remote control pause */
+exports.input_media_rewind = input_media_rewind; /* remote control rewind */
+exports.input_media_forward = input_media_forward; /* remote control forward */
+exports.input_three_d_on = input_three_d_on; /* remote control 3d on */
+exports.input_three_d_off = input_three_d_off; /* remote control 3d off */
 exports.input_backspace = input_backspace; /* send 'backspace' */
 exports.input_text = input_text; /* insert text */
 exports.input_pointer_connect = input_pointer_connect; /* get pointer (like mouse pointer) */
@@ -891,7 +937,7 @@ exports.disconnect = disconnect; /* disconnect from TV */
 exports.turn_off = turn_off; /* turn the TV off */
 
 // various status/state information
-exports.status = status; /* get status information from TV */
+exports.get_status = get_status; /* get status information from TV */
 exports.sw_info = sw_info; /* get software info such as webos version */
 exports.services = services; /* get available services on the TV */
 exports.ip = ip; /* get the TV IP-address */

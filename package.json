@@ -1,14 +1,14 @@
 {
-  "name": "lgtv",
-  "version": "0.2.4",
-  "description": "Simple lib to interact with and control an LG WebOS smart TV.",
+  "name": "lgtv2",
+  "version": "1.0.0",
+  "description": "Simple module to remote control LG WebOS smart TVs",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/msloth/lgtv.js.git"
+    "url": "git://github.com/hobbyquaker/lgtv2.git"
   },
   "keywords": [
     "tv",
@@ -17,12 +17,12 @@
     "remote",
     "control"
   ],
-  "author": "Marcus Linderoth <linderoth.marcus@gmail.com> (https://github.com/msloth)",
+  "author": "Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/msloth/lgtv.js/issues"
+    "url": "https://github.com/hobbyquaker/lgtv2/issues"
   },
-  "homepage": "https://github.com/msloth/lgtv.js",
+  "homepage": "https://github.com/hobbyquaker/lgtv2",
   "dependencies": {
     "websocket": "^1.0.17"
   }

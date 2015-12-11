@@ -107,7 +107,7 @@ var LGTV = function (config) {
         isPaired = false;
         pairing['client-key'] = that.clientKey || undefined;
 
-        that.send('register', pairing, function (err, res) {
+        that.send('register', undefined, pairing, function (err, res) {
 
             if (!err && res) {
                 if (!res["client-key"]) {
@@ -119,6 +119,7 @@ var LGTV = function (config) {
                     isPaired = true;
                 }
             } else {
+                that.emit('error', err);
                 //console.log(err, res);
             }
 
@@ -184,11 +185,7 @@ var LGTV = function (config) {
                     break;
 
                 case 'register':
-                    callbacks[cid] = function (err, res) {
-                        cb(err, res);
-                        // remove callback after first call
-                        delete callbacks[cid];
-                    };
+                    callbacks[cid] = cb;
                     break;
                 default:
                     throw new Error('unknown type');

@@ -2,7 +2,7 @@
  *      lgtv2 - Simple Node.js module to remote control LG WebOS smart TVs
  *
  *      MIT (c) 2015 Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)
- *      this is a fork of https://github.com/msloth/lgtv.js, heavily modified and stripped down to suite my needs.
+ *      this is a fork of https://github.com/msloth/lgtv.js, heavily modified and srewritten to suite my needs.
  *
  */
 
@@ -21,20 +21,20 @@ var LGTV = function (config) {
     config.keyFile = (config.keyFile ? config.keyFile : './lgtv-') + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1');
 
     try {
-        that.key = fs.readFileSync(config.keyFile).toString();
+        that.clientKey = fs.readFileSync(config.keyFile).toString();
     } catch (e) {
         //console.error(config.keyFile, e);
     }
 
     that.saveKey = function (key, cb) {
         //console.log('saveKey', config.address, key);
-        that.key = key;
+        that.clientKey = key;
         fs.writeFile(config.keyFile, key, cb);
     };
 
     var client = new WebSocketClient();
-    var clientconnection = {};
-    var handshaken = false;
+    var connection = {};
+    var isPaired = false;
     var autoReconnect = !!config.reconnect;
 
     var callbacks = {};
@@ -45,7 +45,7 @@ var LGTV = function (config) {
         return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
     }
 
-    var handshake = require('./handshake.json');
+    var pairing = require('./pairing.json');
 
     client.on('connectFailed', function (error) {
         //console.log('connect failed', error);
@@ -58,9 +58,9 @@ var LGTV = function (config) {
         }
     });
 
-    client.on('connect', function (connection) {
+    client.on('connect', function (conn) {
         //console.log('client connect', connection);
-        clientconnection = connection;
+        connection = conn;
 
         connection.on('error', function (error) {
             //console.log('connection error', error);
@@ -69,7 +69,7 @@ var LGTV = function (config) {
 
         connection.on('close', function (e) {
             //console.log('connection close', arguments);
-            clientconnection = {};
+            connection = {};
             delete connection;
             for (var i in callbacks) {
                 delete callbacks[i];
@@ -90,19 +90,6 @@ var LGTV = function (config) {
                     message = JSON.parse(message.utf8Data);
                     //console.log('<--', message);
 
-                    if (message.id === 'register_0') {
-
-                        //console.log('!!! reg 0');
-                        var ck = message.payload["client-key"];
-                        if (!ck) {
-                            that.emit('prompt');
-                        } else {
-                            that.emit('connect');
-                            that.saveKey(ck);
-                            handshaken = true;
-                        }
-                    }
-
                     if (callbacks[message.id]) {
                         callbacks[message.id](null, message.payload);
                     }
@@ -117,13 +104,30 @@ var LGTV = function (config) {
             }
         });
 
-        handshaken = false;
+        isPaired = false;
+        pairing['client-key'] = that.clientKey || undefined;
 
-        handshake.payload['client-key'] = that.key || undefined;
+        that.send('register', pairing, function (err, res) {
+
+            if (!err && res) {
+                if (!res["client-key"]) {
+                    that.emit('prompt');
+                } else {
+                    that.emit('connect');
+                    that.saveKey(res["client-key"]);
+                    that.clientKey = res["client-key"];
+                    isPaired = true;
+                }
+            } else {
+                //console.log(err, res);
+            }
+
+        });
 
         //console.log("--> ", hs);
-        connection.send(JSON.stringify(handshake));
+        //connection.send(JSON.stringify(handshake));
     });
+
 
     this.request = function (uri, payload, cb) {
         this.send('request', uri, payload, cb);
@@ -139,8 +143,11 @@ var LGTV = function (config) {
             payload = {};
         }
 
-        if (!clientconnection.connected) {
-            return cb(new Error('not connected'));
+        //console.log(type, connection);
+
+        if (!connection.connected) {
+            if (typeof cb === 'function') cb(new Error('not connected'));
+            return;
         }
 
         var cid = getCid();
@@ -176,11 +183,18 @@ var LGTV = function (config) {
                     callbacks[cid] = cb;
                     break;
 
+                case 'register':
+                    callbacks[cid] = function (err, res) {
+                        cb(err, res);
+                        // remove callback after first call
+                        delete callbacks[cid];
+                    };
+                    break;
                 default:
                     throw new Error('unknown type');
             }
         }
-        clientconnection.send(json);
+        connection.send(json);
     };
 
     /**
@@ -191,19 +205,18 @@ var LGTV = function (config) {
         autoReconnect = !!config.reconnect;
 
         // if already connected, no need to connect again
-        if (clientconnection.connected && handshaken) {
+        if (connection.connected && isPaired) {
             return;
         }
 
         that.emit('connecting', host);
 
-        // open websocket connection and perform handshake
-        clientconnection = {};
+        connection = {};
         client.connect(host);
     };
 
     this.disconnect = function () {
-        clientconnection.close();
+        connection.close();
         autoReconnect = false;
     };
 

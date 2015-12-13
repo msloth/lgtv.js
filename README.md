@@ -59,9 +59,13 @@ lgtv.on('connect', function () {
 
 #### request(url [, payload] [, callback])
 
-Payload and callback params are optional.
+Payload and callback params are optional. 
 
 #### subscribe(url, callback)
+
+#### disconnect()
+
+Closes the connection to the TV and stops auto-reconnection.
 
 ### events
 
@@ -81,6 +85,8 @@ is called when trying to connect to the TV
 
 
 #### error
+
+is called when Websocket connection errors occur. Subsequent equal errors will only be emitted once (So your log isn't flooded with EHOSTUNREACH errors if your TV is off)
 
 
 

@@ -15,7 +15,8 @@ var LGTV = function (config) {
     if (!(this instanceof LGTV)) return new LGTV(config);
     var that = this;
 
-    if (!config.url) throw new Error('websocket url missing');
+    config = config || {};
+    config.url = config.url || 'ws://lgwebostv:3000';
     config.timeout = config.timeout || 15000;
     config.reconnect = typeof config.reconnect === 'undefined' ? 5000 : config.reconnect;
     config.keyFile = (config.keyFile ? config.keyFile : './lgtv-') + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1');
@@ -35,7 +36,7 @@ var LGTV = function (config) {
     var client = new WebSocketClient();
     var connection = {};
     var isPaired = false;
-    var autoReconnect = !!config.reconnect;
+    var autoReconnect = config.reconnect;
 
     var callbacks = {};
     var cidCount = 0;
@@ -105,6 +106,13 @@ var LGTV = function (config) {
         });
 
         isPaired = false;
+
+        that.register();
+
+    });
+
+    this.register = function () {
+
         pairing['client-key'] = that.clientKey || undefined;
 
         that.send('register', undefined, pairing, function (err, res) {
@@ -115,7 +123,6 @@ var LGTV = function (config) {
                 } else {
                     that.emit('connect');
                     that.saveKey(res["client-key"]);
-                    that.clientKey = res["client-key"];
                     isPaired = true;
                 }
             } else {
@@ -124,11 +131,7 @@ var LGTV = function (config) {
             }
 
         });
-
-        //console.log("--> ", hs);
-        //connection.send(JSON.stringify(handshake));
-    });
-
+    };
 
     this.request = function (uri, payload, cb) {
         this.send('request', uri, payload, cb);
@@ -199,17 +202,15 @@ var LGTV = function (config) {
      *
      */
     this.connect = function (host) {
-        autoReconnect = !!config.reconnect;
+        autoReconnect = config.reconnect;
 
-        // if already connected, no need to connect again
-        if (connection.connected && isPaired) {
-            return;
+        if (connection.connected && !isPaired) {
+            that.register();
+        } else if (!connection.connected) {
+            that.emit('connecting', host);
+            connection = {};
+            client.connect(host);
         }
-
-        that.emit('connecting', host);
-
-        connection = {};
-        client.connect(host);
     };
 
     this.disconnect = function () {

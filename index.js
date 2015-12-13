@@ -2,7 +2,7 @@
  *      lgtv2 - Simple Node.js module to remote control LG WebOS smart TVs
  *
  *      MIT (c) 2015 Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)
- *      this is a fork of https://github.com/msloth/lgtv.js, heavily modified and srewritten to suite my needs.
+ *      this is a fork of https://github.com/msloth/lgtv.js, heavily modified and rewritten to suite my needs.
  *
  */
 
@@ -18,20 +18,23 @@ var LGTV = function (config) {
     if (!config.url) throw new Error('websocket url missing');
     config.timeout = config.timeout || 15000;
     config.reconnect = typeof config.reconnect === 'undefined' ? 5000 : config.reconnect;
-    config.keyFile = (config.keyFile ? config.keyFile : './lgtv-') + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1');
-
-    try {
-        that.clientKey = fs.readFileSync(config.keyFile).toString();
-    } catch (e) {
-        //console.error(config.keyFile, e);
+    if (config.clientKey === undefined) {
+        config.keyFile = (config.keyFile ? config.keyFile : './lgtv-') + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1');
+        try {
+            that.clientKey = fs.readFileSync(config.keyFile).toString();
+        } catch (e) {
+            //console.error(config.keyFile, e);
+        }    
+    } else {
+        that.clientKey = config.clientKey;
     }
 
-    that.saveKey = function (key, cb) {
+    that.saveKey = config.saveKey || function (key, cb) {
         //console.log('saveKey', config.address, key);
         that.clientKey = key;
         fs.writeFile(config.keyFile, key, cb);
     };
-
+    
     var client = new WebSocketClient();
     var connection = {};
     var isPaired = false;

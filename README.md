@@ -1,3 +1,10 @@
+# NOT MAINTAINED anymore
+
+Sorry, I just haven't got the time to keep up. I've gotten a couple of awesome PRs in which this project has been cleaned up and refactored - perhaps one of those is where you may want to go. That being said, this works for me with my TV. Best of luck, and thanks for the great PRs!
+
+//Marcus
+
+
 # LGTV
 
 ## Installation

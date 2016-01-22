@@ -227,13 +227,13 @@ var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
       // set timeout before next probe
       // XXXXX
       // after timeout seconds, invoke callback indicating failure
-      // cb(true, "");
+      cb(true, "");
     }
   });
 
   // scan incoming messages for the magic string
   server.on('message', function(message, remote) {
-    if (message.indexOf("LG Smart TV")) {
+    if (message.toString().indexOf("WebOS") > -1) {
       server.close();
       if (cb) {
         cb(false, remote.address);

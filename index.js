@@ -11,6 +11,26 @@ var WebSocketClient = require('websocket').client; // for communication with TV
 var EventEmitter = require('events').EventEmitter;
 var util =  require('util');
 
+var SpecializedSocket = function (ws) {
+    this.send = function(type, payload) {
+        payload = payload || {};
+        // the message should be key:value pairs, one per line,
+        // with an extra blank line to terminate.
+        var message =
+            Object.keys(payload)
+                .reduce(function(acc, k) {
+                    return acc.concat([k + ':' + payload[k]]);
+                }, ['type:' + type])
+                .join('\n') + '\n\n';
+
+        ws.send(message);
+    };
+
+    this.close = function() {
+        ws.close();
+    };
+};
+
 var LGTV = function (config) {
     if (!(this instanceof LGTV)) return new LGTV(config);
     var that = this;
@@ -40,6 +60,8 @@ var LGTV = function (config) {
     var connection = {};
     var isPaired = false;
     var autoReconnect = config.reconnect;
+
+    var specializedSockets = {};
 
     var callbacks = {};
     var cidCount = 0;
@@ -200,6 +222,40 @@ var LGTV = function (config) {
         connection.send(json);
     };
 
+    this.getSocket = function(url, cb) {
+        if (specializedSockets[url]) {
+            cb(null, specializedSockets[url]);
+            return;
+        }
+
+        that.request(url, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+
+            var special = new WebSocketClient();
+            special
+                .on('connect', function(conn) {
+                    conn
+                        .on('error', function(error) {
+                            that.emit('error', error);
+                        })
+                        .on('close', function() {
+                            delete specializedSockets[url];
+                        });
+
+                    specializedSockets[url] = new SpecializedSocket(conn);
+                    cb(null, specializedSockets[url]);
+                })
+                .on('connectFailed', function(error) {
+                    that.emit('error', error);
+                })
+
+            special.connect(data.socketPath);
+        });
+    };
+
     /**
      *      Connect to TV using a websocket url (eg "ws://192.168.0.100:3000")
      *
@@ -219,6 +275,10 @@ var LGTV = function (config) {
     this.disconnect = function () {
         connection.close();
         autoReconnect = false;
+
+        Object.keys(specializedSockets).forEach(
+            function (k) { specializedSockets[k].close(); }
+        );
     };
 
     setTimeout(function () {

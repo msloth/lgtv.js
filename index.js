@@ -223,13 +223,13 @@ var LGTV = function (config) {
         connection.send(json);
     };
 
-    this.getSocket = function(url, cb) {
+    this.getSocket = function (url, cb) {
         if (specializedSockets[url]) {
             cb(null, specializedSockets[url]);
             return;
         }
 
-        that.request(url, function(err, data) {
+        that.request(url, function (err, data) {
             if (err) {
                 cb(err);
                 return;
@@ -237,9 +237,9 @@ var LGTV = function (config) {
 
             var special = new WebSocketClient();
             special
-                .on('connect', function(conn) {
+                .on('connect', function (conn) {
                     conn
-                        .on('error', function(error) {
+                        .on('error', function (error) {
                             that.emit('error', error);
                         })
                         .on('close', function() {
@@ -251,7 +251,7 @@ var LGTV = function (config) {
                 })
                 .on('connectFailed', function(error) {
                     that.emit('error', error);
-                })
+                });
 
             special.connect(data.socketPath);
         });
@@ -278,7 +278,9 @@ var LGTV = function (config) {
         autoReconnect = false;
 
         Object.keys(specializedSockets).forEach(
-            function (k) { specializedSockets[k].close(); }
+            function (k) {
+                specializedSockets[k].close();
+            }
         );
     };
 

@@ -173,15 +173,16 @@ var LGTV = function (config) {
             switch (type)  {
                 case 'request':
                     callbacks[cid] = function (err, res) {
-                        cb(err, res);
-                        // remove callback after first call
+                        // remove callback reference
                         delete callbacks[cid];
+                        cb(err, res);
+
                     };
 
                     // set callback timeout
                     setTimeout(function () {
-                        cb(new Error('timeout'));
-                        // remove callback
+                        if (callbacks[cid]) cb(new Error('timeout'));
+                        // remove callback reference
                         delete callbacks[cid];
                     }, config.timeout);
                     break;

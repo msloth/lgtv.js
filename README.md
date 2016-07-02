@@ -67,6 +67,22 @@ Payload and callback params are optional.
 
 Closes the connection to the TV and stops auto-reconnection.
 
+#### getSocket(url, callback)
+
+Get specialized socket connection for mouse and button events
+
+Example:
+```Javascript
+lgtv.getSocket(
+    'ssap://com.webos.service.networkinput/getPointerInputSocket',
+    function(err, sock) {
+        if (!err) {
+            sock.send('click');
+        }
+    }
+);
+```
+
 ### events
 
 #### prompt

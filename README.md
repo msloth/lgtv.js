@@ -1,5 +1,8 @@
 # LGTV2
 
+[![NPM version](https://badge.fury.io/js/lgtv2.svg)](http://badge.fury.io/js/lgtv2)
+[![License][mit-badge]][mit-url]
+
 Simple Node.js module to remote control LG WebOS smart TVs.
 
 > this is a fork of [LGTV.js](https://github.com/msloth/lgtv.js), heavily modified and rewritten to suite my needs.
@@ -207,4 +210,6 @@ Example: ```lgtv.request('ssap://system.launcher/launch', {id: 'netflix'});```
 
 MIT (c) 2015 [Sebastian Raff](https://github.com/hobbyquaker)
 
+[mit-badge]: https://img.shields.io/badge/License-MIT-blue.svg?style=flat
+[mit-url]: LICENSE
 

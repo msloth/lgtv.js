@@ -1,7 +1,8 @@
 # LGTV2
 
-[![NPM version](https://badge.fury.io/js/lgtv2.svg)](http://badge.fury.io/js/lgtv2)
 [![License][mit-badge]][mit-url]
+[![NPM version](https://badge.fury.io/js/lgtv2.svg)](http://badge.fury.io/js/lgtv2)
+[![Dependency Status](https://img.shields.io/gemnasium/hobbyquaker/lgtv2.svg?maxAge=2592000)](https://gemnasium.com/github.com/hobbyquaker/lgtv2)
 
 Simple Node.js module to remote control LG WebOS smart TVs.
 

@@ -132,6 +132,8 @@ var LGTV = function (config) {
 
         isPaired = false;
 
+        that.connection = connection;
+        
         that.register();
 
     });

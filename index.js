@@ -274,7 +274,7 @@ var LGTV = function (config) {
     };
 
     this.disconnect = function () {
-        connection.close();
+        if (connection && connection.close) connection.close();
         autoReconnect = false;
 
         Object.keys(specializedSockets).forEach(

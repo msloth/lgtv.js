@@ -1,24 +1,24 @@
 /**
- *      lgtv2 - Simple Node.js module to remote control LG WebOS smart TVs
+ *      Lgtv2 - Simple Node.js module to remote control LG WebOS smart TVs
  *
- *      MIT (c) 2015 Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)
+ *      MIT (c) Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)
  *      this is a fork of https://github.com/msloth/lgtv.js, heavily modified and rewritten to suite my needs.
  *
  */
 
-var fs = require('fs'); // for storing client key
-var WebSocketClient = require('websocket').client; // for communication with TV
+var fs = require('fs');
 var EventEmitter = require('events').EventEmitter;
-var util =  require('util');
+var util = require('util');
+var WebSocketClient = require('websocket').client;
 
 var SpecializedSocket = function (ws) {
-    this.send = function(type, payload) {
+    this.send = function (type, payload) {
         payload = payload || {};
-        // the message should be key:value pairs, one per line,
+        // The message should be key:value pairs, one per line,
         // with an extra blank line to terminate.
         var message =
             Object.keys(payload)
-                .reduce(function(acc, k) {
+                .reduce(function (acc, k) {
                     return acc.concat([k + ':' + payload[k]]);
                 }, ['type:' + type])
                 .join('\n') + '\n\n';
@@ -26,13 +26,15 @@ var SpecializedSocket = function (ws) {
         ws.send(message);
     };
 
-    this.close = function() {
+    this.close = function () {
         ws.close();
     };
 };
 
 var LGTV = function (config) {
-    if (!(this instanceof LGTV)) return new LGTV(config);
+    if (!(this instanceof LGTV)) {
+        return new LGTV(config);
+    }
     var that = this;
 
     config = config || {};
@@ -43,19 +45,19 @@ var LGTV = function (config) {
         config.keyFile = (config.keyFile ? config.keyFile : './lgtv-') + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1');
         try {
             that.clientKey = fs.readFileSync(config.keyFile).toString();
-        } catch (e) {
-            //console.error(config.keyFile, e);
-        }    
+        } catch (err) {
+            that.emit('error', new Error('can\'t load client key from ' + config.keyFile));
+        }
     } else {
         that.clientKey = config.clientKey;
     }
 
     that.saveKey = config.saveKey || function (key, cb) {
-        //console.log('saveKey', config.address, key);
+        // Console.log('saveKey', config.address, key);
         that.clientKey = key;
         fs.writeFile(config.keyFile, key, cb);
     };
-    
+
     var client = new WebSocketClient();
     var connection = {};
     var isPaired = false;
@@ -74,87 +76,75 @@ var LGTV = function (config) {
     var pairing = require('./pairing.json');
 
     client.on('connectFailed', function (error) {
-        //console.log('connect failed', error);
         that.emit('error', error);
 
         if (config.reconnect) {
             setTimeout(function () {
-                if (autoReconnect) that.connect(config.url);
+                if (autoReconnect) {
+                    that.connect(config.url);
+                }
             }, config.reconnect);
         }
     });
 
     client.on('connect', function (conn) {
-        //console.log('client connect', connection);
         connection = conn;
 
         connection.on('error', function (error) {
-            //console.log('connection error', error);
             that.emit('error', error);
         });
 
         connection.on('close', function (e) {
-            //console.log('connection close', arguments);
-            connection = {};
-            delete connection;
-            for (var i in callbacks) {
-                delete callbacks[i];
-            }
+            connection = null;
+            Object.keys(callbacks).forEach(function (cid) {
+                delete callbacks[cid];
+            });
+
             that.emit('close', e);
             if (config.reconnect) {
                 setTimeout(function () {
-                    if (autoReconnect) that.connect(config.url);
+                    if (autoReconnect) {
+                        that.connect(config.url);
+                    }
                 }, config.reconnect);
             }
-
         });
 
         connection.on('message', function (message) {
-            //console.log('connection message', message);
             if (message.type === 'utf8') {
                 try {
                     message = JSON.parse(message.utf8Data);
-                    //console.log('<--', message);
-
                     if (callbacks[message.id]) {
                         callbacks[message.id](null, message.payload);
                     }
-
-                } catch (e) {
-                    //console.log('<  ', message.utf8Data);
+                } catch (err) {
+                    that.emit('error', new Error('JSON parse error ' + message.utf8Data));
                 }
-
-
             } else {
-                //console.log('<  ', message.toString());
+                that.emit('error', new Error('received non utf8 message ' + message.toString()));
             }
         });
 
         isPaired = false;
 
         that.register();
-
     });
 
     this.register = function () {
-
         pairing['client-key'] = that.clientKey || undefined;
 
         that.send('register', undefined, pairing, function (err, res) {
-
             if (!err && res) {
-                if (!res["client-key"]) {
-                    that.emit('prompt');
-                } else {
+                if (res['client-key']) {
                     that.emit('connect');
-                    that.saveKey(res["client-key"]);
+                    that.saveKey(res['client-key']);
                     isPaired = true;
+                } else {
+                    that.emit('prompt');
                 }
             } else {
                 that.emit('error', err);
-                //console.log(err, res);
             }
-
         });
     };
 
@@ -172,10 +162,10 @@ var LGTV = function (config) {
             payload = {};
         }
 
-        //console.log(type, connection);
-
         if (!connection.connected) {
-            if (typeof cb === 'function') cb(new Error('not connected'));
+            if (typeof cb === 'function') {
+                cb(new Error('not connected'));
+            }
             return;
         }
 
@@ -188,23 +178,21 @@ var LGTV = function (config) {
             payload: payload
         });
 
-        //console.log('-->', json);
-
         if (typeof cb === 'function') {
-
-            switch (type)  {
+            switch (type) {
                 case 'request':
                     callbacks[cid] = function (err, res) {
-                        // remove callback reference
+                        // Remove callback reference
                         delete callbacks[cid];
                         cb(err, res);
-
                     };
 
-                    // set callback timeout
+                    // Set callback timeout
                     setTimeout(function () {
-                        if (callbacks[cid]) cb(new Error('timeout'));
-                        // remove callback reference
+                        if (callbacks[cid]) {
+                            cb(new Error('timeout'));
+                        }
+                        // Remove callback reference
                         delete callbacks[cid];
                     }, config.timeout);
                     break;
@@ -242,14 +230,14 @@ var LGTV = function (config) {
                         .on('error', function (error) {
                             that.emit('error', error);
                         })
-                        .on('close', function() {
+                        .on('close', function () {
                             delete specializedSockets[url];
                         });
 
                     specializedSockets[url] = new SpecializedSocket(conn);
                     cb(null, specializedSockets[url]);
                 })
-                .on('connectFailed', function(error) {
+                .on('connectFailed', function (error) {
                     that.emit('error', error);
                 });
 
@@ -274,7 +262,9 @@ var LGTV = function (config) {
     };
 
     this.disconnect = function () {
-        if (connection && connection.close) connection.close();
+        if (connection && connection.close) {
+            connection.close();
+        }
         autoReconnect = false;
 
         Object.keys(specializedSockets).forEach(

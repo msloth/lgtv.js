@@ -15,6 +15,10 @@ Simple Node.js module to remote control LG WebOS smart TVs.
 
 `npm install lgtv2`
 
+## TV configuration
+
+You need to allow "LG Connect Apps" on your TV - see http://www.lg.com/uk/support/product-help/CT00008334-1437131798537-others
+
 ## Usage Examples
 
 

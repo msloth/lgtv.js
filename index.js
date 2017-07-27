@@ -47,7 +47,7 @@ var LGTV = function (config) {
         try {
             that.clientKey = fs.readFileSync(config.keyFile).toString();
         } catch (err) {
-            that.emit('error', new Error('can\'t load client key from ' + config.keyFile));
+            //that.emit('error', new Error('can\'t load client key from ' + config.keyFile));
         }
     } else {
         that.clientKey = config.clientKey;
@@ -76,8 +76,13 @@ var LGTV = function (config) {
 
     var pairing = require('./pairing.json');
 
+    var lastError;
+
     client.on('connectFailed', function (error) {
-        that.emit('error', error);
+        if (lastError !== error.toString()) {
+            that.emit('error', error);
+        }
+        lastError = error.toString();
 
         if (config.reconnect) {
             setTimeout(function () {

@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/hobbyquaker/lgtv2",
   "dependencies": {
+    "persist-path": "^1.0.2",
     "websocket": "^1.0.24"
   },
   "devDependencies": {

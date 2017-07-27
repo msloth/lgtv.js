@@ -11,6 +11,7 @@ var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 var WebSocketClient = require('websocket').client;
 var ppath = require('persist-path');
+var mkdirp = require('mkdirp');
 
 var SpecializedSocket = function (ws) {
     this.send = function (type, payload) {
@@ -42,7 +43,8 @@ var LGTV = function (config) {
     config.url = config.url || 'ws://lgwebostv:3000';
     config.timeout = config.timeout || 15000;
     config.reconnect = typeof config.reconnect === 'undefined' ? 5000 : config.reconnect;
-    if (config.clientKey === undefined) {
+    if (typeof config.clientKey === 'undefined') {
+        mkdirp(ppath('lgtv2'));
         config.keyFile = (config.keyFile ? config.keyFile : ppath('lgtv2/keyfile-' + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1')));
         try {
             that.clientKey = fs.readFileSync(config.keyFile).toString();
@@ -54,7 +56,6 @@ var LGTV = function (config) {
     }
 
     that.saveKey = config.saveKey || function (key, cb) {
-        // Console.log('saveKey', config.address, key);
         that.clientKey = key;
         fs.writeFile(config.keyFile, key, cb);
     };
@@ -101,7 +102,7 @@ var LGTV = function (config) {
         });
 
         connection.on('close', function (e) {
-            connection = null;
+            connection = {};
             Object.keys(callbacks).forEach(function (cid) {
                 delete callbacks[cid];
             });
@@ -117,14 +118,31 @@ var LGTV = function (config) {
         });
 
         connection.on('message', function (message) {
+            var parsedMessage;
             if (message.type === 'utf8') {
-                try {
-                    message = JSON.parse(message.utf8Data);
-                    if (callbacks[message.id]) {
-                        callbacks[message.id](null, message.payload);
+                if (message.utf8Data) {
+                    try {
+                        parsedMessage = JSON.parse(message.utf8Data);
+                    } catch (err) {
+                        that.emit('error', new Error('JSON parse error ' + message.utf8Data));
                     }
-                } catch (err) {
-                    that.emit('error', new Error('JSON parse error ' + message.utf8Data));
+                }
+                if (parsedMessage && callbacks[parsedMessage.id]) {
+                    if (parsedMessage.payload && parsedMessage.payload.subscribed) {
+                        if (typeof parsedMessage.payload.muted !== 'undefined') {
+                            if (parsedMessage.payload.changed) {
+                                parsedMessage.payload.changed.push('muted');
+                            } else {
+                                parsedMessage.payload.changed = ['muted'];
+                            }
+                            if (parsedMessage.payload.changed) {
+                                parsedMessage.payload.changed.push('volume');
+                            } else {
+                                parsedMessage.payload.changed = ['volume'];
+                            }
+                        }
+                    }
+                    callbacks[parsedMessage.id](null, parsedMessage.payload);
                 }
             } else {
                 that.emit('error', new Error('received non utf8 message ' + message.toString()));
@@ -145,7 +163,7 @@ var LGTV = function (config) {
                     that.emit('connect');
                     that.saveKey(res['client-key'], function (err) {
                        if (err) {
-                           this.emit('error', err);
+                           that.emit('error', err);
                        }
                     });
                     isPaired = true;

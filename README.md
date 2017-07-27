@@ -32,6 +32,10 @@ var lgtv = require("lgtv2")({
     url: 'ws://lgwebostv:3000'
 });
 
+lgtv.on('error', function (err) {
+    console.log(err);
+});
+
 lgtv.on('connect', function () {
     console.log('connected');
     
@@ -48,6 +52,10 @@ Turn TV off:
 
 var lgtv = require("lgtv2")({
     url: 'ws://lgwebostv:3000'
+});
+
+lgtv.on('error', function (err) {
+    console.log(err);
 });
 
 lgtv.on('connect', function () {

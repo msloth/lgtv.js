@@ -66,7 +66,7 @@ lgtv.on('connect', function () {
 * url - websocket url of TV. default: 'ws://lgwebostv:3000'
 * timeout - request timeout in milliseconds, default: 15000
 * reconnect - reconnect interval in milliseconds, default: 5000
-* keyFile - path for key storage. Will be suffixed with hostname/ip of TV. default: "./lgtv-"
+* keyFile - path for key storage. Will be suffixed with hostname/ip of TV. default: "~/.lgtv2/keyfile-"
 * saveKey - you can override this with your own function for saving the key
 * clientKey - you have to supply the key here if you're using a custom saveKey method
 

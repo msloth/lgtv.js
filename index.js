@@ -48,9 +48,7 @@ var LGTV = function (config) {
         config.keyFile = (config.keyFile ? config.keyFile : ppath('lgtv2/keyfile-' + config.url.replace(/[a-z]+:\/\/([0-9a-zA-Z-_.]+):[0-9]+/, '$1')));
         try {
             that.clientKey = fs.readFileSync(config.keyFile).toString();
-        } catch (err) {
-            //that.emit('error', new Error('can\'t load client key from ' + config.keyFile));
-        }
+        } catch (err) {}
     } else {
         that.clientKey = config.clientKey;
     }
@@ -129,12 +127,15 @@ var LGTV = function (config) {
                 }
                 if (parsedMessage && callbacks[parsedMessage.id]) {
                     if (parsedMessage.payload && parsedMessage.payload.subscribed) {
+                        // Set changed array on first response to subscription
                         if (typeof parsedMessage.payload.muted !== 'undefined') {
                             if (parsedMessage.payload.changed) {
                                 parsedMessage.payload.changed.push('muted');
                             } else {
                                 parsedMessage.payload.changed = ['muted'];
                             }
+                        }
+                        if (typeof parsedMessage.payload.volume !== 'undefined') {
                             if (parsedMessage.payload.changed) {
                                 parsedMessage.payload.changed.push('volume');
                             } else {
@@ -162,9 +163,9 @@ var LGTV = function (config) {
                 if (res['client-key']) {
                     that.emit('connect');
                     that.saveKey(res['client-key'], function (err) {
-                       if (err) {
-                           that.emit('error', err);
-                       }
+                        if (err) {
+                            that.emit('error', err);
+                        }
                     });
                     isPaired = true;
                 } else {

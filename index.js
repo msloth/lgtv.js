@@ -138,7 +138,11 @@ var LGTV = function (config) {
             if (!err && res) {
                 if (res['client-key']) {
                     that.emit('connect');
-                    that.saveKey(res['client-key']);
+                    that.saveKey(res['client-key'], function (err) {
+                       if (err) {
+                           this.emit('error', err);
+                       }
+                    });
                     isPaired = true;
                 } else {
                     that.emit('prompt');

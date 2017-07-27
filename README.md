@@ -10,6 +10,9 @@ Simple Node.js module to remote control LG WebOS smart TVs.
 
 > this is a fork of [LGTV.js](https://github.com/msloth/lgtv.js), heavily modified and rewritten to suite my needs.
 
+With __v1.4.0__ the location and filename of the keyFile is changed, so you likely will have to accept the connection on 
+your TV again after upgrading to 1.4.0.
+
 
 ## Installation
 
@@ -34,7 +37,7 @@ lgtv.on('connect', function () {
     
     lgtv.subscribe('ssap://audio/getVolume', function (err, res) {
         if (res.changed.indexOf('volume') !== -1) console.log('volume changed', res.volume);
-        if (res.changed.indexOf('muted') !== -1) console.log('mute changed', mute);
+        if (res.changed.indexOf('muted') !== -1) console.log('mute changed', res.muted);
     });
     
 });
@@ -64,6 +67,8 @@ lgtv.on('connect', function () {
 * timeout - request timeout in milliseconds, default: 15000
 * reconnect - reconnect interval in milliseconds, default: 5000
 * keyFile - path for key storage. Will be suffixed with hostname/ip of TV. default: "./lgtv-"
+* saveKey - you can override this with your own function for saving the key
+* clientKey - you have to supply the key here if you're using a custom saveKey method
 
 ### methods
 
@@ -112,7 +117,8 @@ is called when trying to connect to the TV
 
 #### error
 
-is called when Websocket connection errors occur. Subsequent equal errors will only be emitted once (So your log isn't flooded with EHOSTUNREACH errors if your TV is off)
+is called when Websocket connection errors occur. Subsequent equal errors will only be emitted once (So your log isn't 
+flooded with EHOSTUNREACH errors if your TV is off)
 
 
 

@@ -1,6 +1,6 @@
 {
   "name": "lgtv2",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Simple module to remote control LG WebOS smart TVs",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,8 @@
   ],
   "author": "Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)",
   "contributors": [
-    "forty2 (https://github.com/forty2/)"
+    "forty2 https://github.com/forty2",
+    "Marcin https://github.com/merdok"
   ],
   "license": "MIT",
   "bugs": {

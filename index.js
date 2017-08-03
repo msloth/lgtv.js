@@ -106,6 +106,7 @@ var LGTV = function (config) {
             });
 
             that.emit('close', e);
+            that.connection = false;
             if (config.reconnect) {
                 setTimeout(function () {
                     if (autoReconnect) {
@@ -152,7 +153,7 @@ var LGTV = function (config) {
 
         isPaired = false;
 
-        that.connection = connection;
+        that.connection = false;
         
         that.register();
     });
@@ -164,6 +165,7 @@ var LGTV = function (config) {
             if (!err && res) {
                 if (res['client-key']) {
                     that.emit('connect');
+                    that.connection = true;
                     that.saveKey(res['client-key'], function (err) {
                         if (err) {
                             that.emit('error', err);

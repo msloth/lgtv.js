@@ -14,6 +14,14 @@ With __v1.4.0__ the location and filename of the keyFile is changed, so you like
 your TV again after upgrading to 1.4.0.
 
 
+## Projects using this Module
+
+* [node-red-contrib-lgtv](https://github.com/hobbyquaker/node-red-contrib-lgtv)
+* [lgtv2mqtt](https://github.com/hobbyquaker/lgtv2mqtt)
+* [homebridge-webos3](https://github.com/merdok/homebridge-webos3)
+* [ioBroker.lgtv](https://github.com/SebastianSchultz/ioBroker.lgtv)
+
+
 ## Installation
 
 `npm install lgtv2`

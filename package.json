@@ -4,9 +4,9 @@
   "description": "Simple module to remote control LG WebOS smart TVs",
   "main": "index.js",
   "scripts": {
-    "test": "camo-purge ; xo --space 4 --no-esnext --ignore test.js",
-    "lint": "xo --space 4 --no-esnext --ignore test.js",
-    "lintfix": "xo --space 4 --no-esnext --ignore test.js --fix"
+    "test": "camo-purge ; xo",
+    "lint": "xo",
+    "lintfix": "xo --fix"
   },
   "repository": {
     "type": "git",
@@ -37,5 +37,15 @@
   "devDependencies": {
     "camo-purge": "latest",
     "xo": "latest"
+  },
+  "xo": {
+    "space": 4,
+    "esnext": false,
+    "ignore": [
+      "test.js"
+    ],
+    "rules": {
+      "unicorn/regex-shorthand": "warn"
+    }
   }
 }

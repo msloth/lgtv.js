@@ -231,9 +231,9 @@ var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
     }
   });
 
-  // scan incoming messages for the magic string
+  // scan incoming messages for the magic string, close when we've got it
   server.on('message', function(message, remote) {
-    if (message.indexOf("LG Smart TV")) {
+    if (message.indexOf("LG Smart TV") >= 0) {
       server.close();
       if (cb) {
         cb(false, remote.address);

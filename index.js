@@ -205,10 +205,16 @@ var _send_ssdp_discover = function(socket)
 /*---------------------------------------------------------------------------*/
 var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
 {
+
+  // timeout added for multi tv find // +1 second added in case of retry timeout use
+  setTimeout(function() {
+    server.close();
+  }, ((retry_timeout_seconds+1)*1000));
+
   var server = dgram.createSocket('udp4');
   var timeout = 0;
   var cb = tv_ip_found_callback || undefined;
-
+  var tvFound = "";
   // sanitize parameters and set default otherwise
   if (retry_timeout_seconds && typeof(retry_timeout_seconds) === 'number') {
     timeout = retry_timeout_seconds;
@@ -227,16 +233,19 @@ var discover_ip = function(retry_timeout_seconds, tv_ip_found_callback)
       // set timeout before next probe
       // XXXXX
       // after timeout seconds, invoke callback indicating failure
-      // cb(true, "");
+      //cb(true, "");
     }
   });
-
-  // scan incoming messages for the magic string, close when we've got it
+  // scan incoming messages for the magic string
   server.on('message', function(message, remote) {
-    if (message.indexOf("LG Smart TV") >= 0) {
-      server.close();
+    if (message.indexOf("LG Smart TV")) {
+      // commented because is stop at first tv found
+      //server.close(); 
       if (cb) {
-        cb(false, remote.address);
+        if (tvFound != remote.address){ // we need this to filter same ip return
+          cb(false, remote.address);
+          tvFound = remote.address;
+        }
       }
     }
   });

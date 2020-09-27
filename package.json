@@ -1,6 +1,6 @@
 {
   "name": "lgtv2",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Simple module to remote control LG WebOS smart TVs",
   "main": "index.js",
   "scripts": {
@@ -33,7 +33,7 @@
   "dependencies": {
     "mkdirp": "^1.0.4",
     "persist-path": "^1.0.2",
-    "websocket": "^1.0.31"
+    "websocket": "^1.0.32"
   },
   "devDependencies": {
     "camo-purge": "latest",
